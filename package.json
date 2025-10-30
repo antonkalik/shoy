@@ -1,12 +1,13 @@
 {
   "name": "@neotep/shoy",
-  "version": "0.1.0",
+  "version": "0.0.0-development",
   "main": "index.js",
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "semantic-release": "semantic-release --branches main"
   },
   "files": [
     "dist"
@@ -36,10 +37,15 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "tsup": "^8.5.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "semantic-release": "^25.0.1"
   },
   "peerDependencies": {
     "@types/react": ">=16.0.0",
     "react": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/antonkalik/shoy.git"
   }
 }
