@@ -101,7 +101,6 @@ export class PatchStore<S> {
         }
 
         if (a === b) return true;
-
         if (a.constructor !== b.constructor) return false;
 
         if (Array.isArray(a) && Array.isArray(b)) {
