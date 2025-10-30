@@ -3,21 +3,22 @@ import * as React from "react";
 type Patch<S> = S extends object
     ? Partial<S> | ((prev: S) => Partial<S>)
     : S | ((prev: S) => S);
+
 type Hash = string;
 
-interface PatchStoreOptions {
+interface Options {
     maxHistory?: number;
     onError?: (error: Error, context: string) => void;
 }
 
-export class PatchStore<S> {
+export class Shoy<S> {
     private readonly versions = new Map<Hash, S>();
     private rootHash: Hash = "";
     private readonly listeners = new Set<(hash: Hash) => void>();
     private readonly maxHistory: number;
     private readonly onError?: (error: Error, context: string) => void;
 
-    constructor(initialState: S, options: PatchStoreOptions = {}) {
+    constructor(initialState: S, options: Options = {}) {
         this.maxHistory = options.maxHistory ?? 0;
         this.onError = options.onError;
 
@@ -174,7 +175,7 @@ export class PatchStore<S> {
     get current(): S {
         const state = this.versions.get(this.rootHash);
         if (!state) {
-            const error = new Error("PatchStore corrupted – rootHash missing");
+            const error = new Error("Shoy corrupted – rootHash missing");
             this.handleError(error, "current");
             throw error;
         }
@@ -213,7 +214,7 @@ export class PatchStore<S> {
         if (this.onError) {
             this.onError(error, context);
         } else {
-            console.error(`PatchStore Error in ${context}:`, error);
+            console.error(`Shoy Error in ${context}:`, error);
         }
     }
 
@@ -246,8 +247,8 @@ export class PatchStore<S> {
     }
 }
 
-export function usePatch<S, R>(
-    store: PatchStore<S>,
+export function useGet<S, R>(
+    store: Shoy<S>,
     selector: (state: S) => R,
 ): R {
     const [value, setValue] = React.useState<R>(() => selector(store.current));
@@ -263,6 +264,6 @@ export function usePatch<S, R>(
     return value;
 }
 
-export function usePatchApply<S>(store: PatchStore<S>) {
+export function useApply<S>(store: Shoy<S>) {
     return React.useCallback((patch: Patch<S>) => store.apply(patch), [store]);
 }
