@@ -1,5 +1,5 @@
 {
-  "name": "@neotep/shoy",
+  "name": "shoy",
   "version": "0.0.0-development",
   "main": "index.js",
   "scripts": {
