@@ -8,20 +8,35 @@
     "typecheck": "tsc --noEmit",
     "prepare": "husky install"
   },
+  "files": [
+    "dist"
+  ],
+  "private": false,
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": {
+    "name": "Anton Kalik",
+    "email": "antonkalik@gmail.com",
+    "url": "https://neotep.com"
+  },
   "description": "State management as encrypted diff patches",
+  "publishConfig": {
+    "access": "public"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": "22.15.x"
+  },
   "devDependencies": {
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
+    "eslint": "^9.38.0",
+    "husky": "^8.0.0",
     "install": "^0.13.0",
     "prettier": "^3.6.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "tsup": "^8.5.0",
-    "typescript": "^5.9.3",
-    "husky": "^8.0.0"
+    "typescript": "^5.9.3"
   },
   "peerDependencies": {
     "@types/react": ">=16.0.0",
