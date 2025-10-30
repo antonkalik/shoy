@@ -1,0 +1,30 @@
+{
+  "name": "@neotep/shoy",
+  "version": "0.1.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "prepare": "husky install"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "State management as encrypted diff patches",
+  "devDependencies": {
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "install": "^0.13.0",
+    "prettier": "^3.6.2",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3",
+    "husky": "^8.0.0"
+  },
+  "peerDependencies": {
+    "@types/react": ">=16.0.0",
+    "react": ">=16.0.0"
+  }
+}
