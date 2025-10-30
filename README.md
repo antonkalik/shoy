@@ -7,8 +7,7 @@ Versioned by default: Built-in undo/redo/time-travel without Redux DevTools hack
 Faster: Patches are shallow merges; selectors skip unchanged diffs.
 Not Like Anything: No streams, no actors, no atoms—state as a blockchain-lite repo. Works offline (localStorage commits).
 
-This dodges all prior libs: No events (XState), no sets (Zustand), no observables (MobX), no atoms (Jotai). Pure patches + hashes.
-Pick streams or patches—both React 16+, multi-store, performant. Which vibe?
+Pure patches + hashes. Pick streams or patches—both React 16+, multi-store, performant.
 
 
 Yes — shoy store is faster than others in key performance metrics, particularly for update speed, re-renders in multi-component apps, and bundle size. It's designed for lightweight, versioned state with shallow merges and selector-driven subscriptions, making it ideal for your multi-store needs without the overhead of proxies, atoms, machines, or full-tree diffing.
