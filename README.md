@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Shoy Logo](https://github.com/antonkalik/shoy/blob/main/docs/banner.png?raw=true)
+<img width="900" height="340" alt="Shoy Banner" src="https://github.com/user-attachments/assets/9469fd1b-bf4a-471e-a2da-e7f5c11c27e2" />
 
 </div>
 
