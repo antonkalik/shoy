@@ -17,6 +17,7 @@
   "files": [
     "dist"
   ],
+  "packageManager": "pnpm@10.20.0",
   "private": false,
   "keywords": [],
   "author": {
