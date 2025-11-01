@@ -52,9 +52,11 @@ const store = new Shoy(initialState);
 
 ### Advanced Store Configuration
 
+Configure the store with options for history management and error handling:
+
 ```typescript
 const store = new Shoy(initialState, {
-  maxHistory: 50,        // Number of state versions to keep (0 = no history)
+  maxHistory: 50,
   onError: (error, context) => {
     console.error(`Error in ${context}:`, error);
   },
@@ -69,22 +71,15 @@ const store = new Shoy(initialState, {
 
 #### Reading State with `useGet`
 
-Use `useGet` to subscribe to specific parts of the state:
+Subscribe to specific parts of the state with different selector patterns:
 
 ```typescript
 import { useGet, useApply } from 'shoy';
 
 function Counter() {
-  // Read entire state
   const state = useGet(store, (s) => s);
-  
-  // Read nested property
   const userName = useGet(store, (s) => s.user.name);
-  
-  // Read with transformation
   const isAdult = useGet(store, (s) => s.user.age >= 18);
-  
-  // Read primitive value
   const count = useGet(store, (s) => s.count);
   
   return <div>Count: {count}</div>;
@@ -93,31 +88,27 @@ function Counter() {
 
 #### Updating State with `useApply`
 
-Use `useApply` to get a stable callback for state updates:
+Get a stable callback function for state updates with various update patterns:
 
 ```typescript
 function CounterControls() {
   const apply = useApply(store);
   
   const increment = () => {
-    // Partial update (shallow merge)
     apply({ count: store.current.count + 1 });
   };
   
   const setUser = () => {
-    // Partial update
     apply({ user: { name: 'Bob', age: 25 } });
   };
   
   const incrementByTwo = () => {
-    // Functional update
     apply((prev) => ({
       count: prev.count + 2,
     }));
   };
   
   const reset = () => {
-    // Apply full state
     apply({
       count: 0,
       user: { name: 'Alice', age: 30 },
@@ -139,22 +130,17 @@ function CounterControls() {
 
 ### Time-Travel Debugging
 
-When `maxHistory > 0`, you can navigate through state history:
+Navigate through state history when `maxHistory > 0`:
 
 ```typescript
 const store = new Shoy(initialState, { maxHistory: 20 });
 
-// Get all available hashes
-const history = store.history; // Returns: Hash[]
-
-// Get current state
+const history = store.history;
 const current = store.current;
-
-// Revert to a previous state
 const success = await store.revert(someHash);
 ```
 
-**Example:**
+**Full example with React:**
 ```typescript
 function HistoryControls() {
   const history = useGet(store, () => store.history);
@@ -183,36 +169,30 @@ function HistoryControls() {
 
 ### Manual State Access
 
-Access state without React hooks:
+Access and subscribe to state changes outside of React components:
 
 ```typescript
-// Get current state synchronously
 const currentState = store.current;
 
-// Subscribe to state changes (returns unsubscribe function)
 const unsubscribe = store.subscribe((hash) => {
   console.log('State changed, new hash:', hash);
 });
 
-// Clean up subscription
 unsubscribe();
 ```
 
 ### Manual State Updates
 
-Update state programmatically:
+Update state programmatically without React:
 
 ```typescript
-// Partial update
 await store.apply({ count: 42 });
 
-// Functional update
 await store.apply((prev) => ({
   count: prev.count + 1,
   user: { ...prev.user, age: prev.user.age + 1 },
 }));
 
-// Returns the hash of the new state
 const newHash = await store.apply({ count: 100 });
 console.log('New state hash:', newHash);
 ```
@@ -307,9 +287,8 @@ interface MyState {
 
 const store = new Shoy<MyState>({ items: [], filter: '' });
 
-// All methods are fully typed
-const filter = useGet(store, s => s.filter); // type: string
-const apply = useApply(store); // type: (patch: Patch<MyState>) => Promise<Hash>
+const filter = useGet(store, s => s.filter);
+const apply = useApply(store);
 ```
 
 ## License
