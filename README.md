@@ -6,7 +6,6 @@
 
 <div style="text-align: center;">
 
-[![CI](https://github.com/antonkalik/shoy/workflows/CI/badge.svg)](https://github.com/antonkalik/shoy/actions)
 [![npm version](https://img.shields.io/npm/v/shoy.svg)](https://www.npmjs.com/package/shoy)
 [![npm downloads](https://img.shields.io/npm/dm/shoy.svg)](https://www.npmjs.com/package/shoy)
 [![bundle size](https://img.shields.io/badge/bundle%20size-1.3KB-brightgreen.svg)](https://bundlephobia.com/package/shoy)
