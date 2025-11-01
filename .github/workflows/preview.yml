@@ -1,0 +1,34 @@
+name: Preview
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+
+permissions: {}
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: preview
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: corepack enable
+      
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Publish preview
+        run: pnpm dlx pkg-pr-new publish
+
