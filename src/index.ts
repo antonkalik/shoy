@@ -205,6 +205,7 @@ export class Shoy<S> {
   private prune(): void {
     if (this.maxHistory <= 0) return;
     const keys = Array.from(this.versions.keys());
+
     if (keys.length > this.maxHistory + 1) {
       const toRemove = keys.slice(0, keys.length - this.maxHistory - 1);
       for (const k of toRemove) this.versions.delete(k);
