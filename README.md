@@ -9,7 +9,8 @@
 [![CI](https://github.com/antonkalik/shoy/workflows/CI/badge.svg)](https://github.com/antonkalik/shoy/actions)
 [![npm version](https://img.shields.io/npm/v/shoy.svg)](https://www.npmjs.com/package/shoy)
 [![npm downloads](https://img.shields.io/npm/dm/shoy.svg)](https://www.npmjs.com/package/shoy)
-[![minified](https://img.shields.io/badge/bundle%20size-1.3KB-brightgreen.svg)](https://bundlephobia.com/package/shoy)
+[![bundle size](https://img.shields.io/badge/bundle%20size-1.3KB-brightgreen.svg)](https://bundlephobia.com/package/shoy)
+[![docs](https://img.shields.io/badge/docs-shoy.org-blue.svg)](https://shoy.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg)](http://www.typescriptlang.org/)
 
