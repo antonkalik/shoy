@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<img width="900" height="340" alt="Shoy Banner" src="https://github.com/user-attachments/assets/9469fd1b-bf4a-471e-a2da-e7f5c11c27e2" />
+<img width="900" height="340" alt="Shoy Banner" src="https://github.com/user-attachments/assets/df770f3f-faf9-46d4-a3a6-b323b7b7023d" />
 
 </div>
 
