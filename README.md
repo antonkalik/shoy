@@ -11,11 +11,11 @@ State as Encrypted Diff Patches. Stores are git-like repos where updates are cry
 ## Installation
 
 ```bash
-npm install shoy
-# or
 pnpm add shoy
 # or
 yarn add shoy
+# or
+npm install shoy
 ```
 
 **Requirements:**
