@@ -21,14 +21,7 @@ jobs:
         with:
           node-version: 20
 
-      - run: corepack enable
-      
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Build
-        run: pnpm run build
-
-      - name: Publish preview
-        run: pnpm dlx pkg-pr-new publish
+      - run: pnpm install
+      - run: pnpm run build
+      - run: pnpm dlx pkg-pr-new publish './dist' --compact --template './previews/*'
 
