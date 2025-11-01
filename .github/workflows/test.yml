@@ -1,0 +1,74 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests with coverage
+        run: pnpm run test:coverage
+
+      - name: Extract coverage percentage
+        id: coverage
+        run: |
+          COVERAGE=$(node -e "const fs = require('fs'); const data = JSON.parse(fs.readFileSync('./coverage/coverage-summary.json', 'utf8')); console.log(Math.round(data.total.lines.pct))")
+          echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
+          echo "Coverage: $COVERAGE%"
+
+      - name: Update README with coverage badge
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          COVERAGE=${{ steps.coverage.outputs.percentage }}
+          if [ "$COVERAGE" -lt 80 ]; then
+            COLOR="red"
+          elif [ "$COVERAGE" -lt 90 ]; then
+            COLOR="yellow"
+          else
+            COLOR="brightgreen"
+          fi
+          
+          node -e "
+          const fs = require('fs');
+          const coverage = '${{ steps.coverage.outputs.percentage }}';
+          const color = '$COLOR';
+          const readme = fs.readFileSync('README.md', 'utf8');
+          const badge = \`[![coverage](https://img.shields.io/badge/coverage-\${coverage}%25-\${color}.svg)](https://github.com/antonkalik/shoy)\`;
+          const updated = readme.replace(
+            /\[!\[coverage\]\([^)]+\)\]\([^)]+\)/,
+            badge
+          );
+          fs.writeFileSync('README.md', updated);
+          "
+      
+      - name: Commit coverage badge
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add README.md
+          git diff --staged --quiet || git commit -m "chore: update coverage badge [skip ci]"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
