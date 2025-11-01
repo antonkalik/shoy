@@ -1,0 +1,48 @@
+title: "💡 Idea: "
+labels: ["idea"]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your Idea
+      description: Describe your idea or suggestion
+      placeholder: What's your idea?
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: Why do you think this would be valuable?
+      placeholder: Explain why this idea matters...
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: How would this be used?
+      placeholder: Provide examples of how this would be used...
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Idea Area
+      options:
+        - "Core Functionality"
+        - "React Hooks"
+        - "Performance"
+        - "Developer Experience"
+        - "Documentation"
+        - "Examples / Cookbook"
+        - "Other"
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other relevant information
+      placeholder: Add any other context...
+

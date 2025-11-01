@@ -1,0 +1,47 @@
+title: "💬 Question: "
+labels: ["question"]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: Please provide a clear description of your question
+      placeholder: What do you need help with?
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Any relevant context or background information
+      placeholder: Provide context about what you're trying to achieve...
+
+  - type: textarea
+    id: code
+    attributes:
+      label: Code Example
+      description: If applicable, share relevant code
+      placeholder: |
+        ```typescript
+        const store = new Shoy({ count: 0 });
+        // Your code here
+        ```
+      render: typescript
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Question Category
+      options:
+        - "General Usage"
+        - "State Management"
+        - "React Integration"
+        - "Time-travel / History"
+        - "Performance"
+        - "TypeScript"
+        - "Build / Setup"
+        - "Other"
+    validations:
+      required: true
+

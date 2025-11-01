@@ -1,0 +1,56 @@
+title: "🎉 Show & Tell: "
+labels: ["show-and-tell"]
+body:
+  - type: textarea
+    id: project
+    attributes:
+      label: Your Project
+      description: Tell us about your project using Shoy
+      placeholder: |
+        - What are you building?
+        - How are you using Shoy?
+        - What makes your project unique?
+    validations:
+      required: true
+
+  - type: textarea
+    id: code
+    attributes:
+      label: Code Snippet
+      description: Share some code if you'd like!
+      placeholder: |
+        ```typescript
+        // Your cool code here
+        ```
+      render: typescript
+
+  - type: input
+    id: link
+    attributes:
+      label: Project Link
+      description: Link to your project (optional)
+      placeholder: https://...
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Project Type
+      options:
+        - "Web App"
+        - "Mobile App"
+        - "Library / Tool"
+        - "Experiment"
+        - "Other"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: sharing
+    attributes:
+      label: Sharing Preferences
+      options:
+        - label: I'm open to feedback and questions
+          required: false
+        - label: I'm open to featuring this in the documentation
+          required: false
+

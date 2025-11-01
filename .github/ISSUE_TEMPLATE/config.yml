@@ -1,0 +1,9 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 💬 Ask a Question
+    url: https://github.com/antonkalik/shoy/discussions
+    about: Ask questions and discuss with the community
+  - name: 📚 Documentation
+    url: https://shoy.org
+    about: Check out the official documentation
+
