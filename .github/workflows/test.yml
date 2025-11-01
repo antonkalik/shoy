@@ -27,9 +27,19 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run tests with coverage
+        if: github.event_name == 'push'
         run: pnpm run test:coverage
 
+      - name: Jest Coverage Report
+        if: github.event_name == 'pull_request'
+        uses: ArtiomTr/jest-coverage-report-action@v2
+        with:
+          package-manager: pnpm
+          test-script: pnpm test
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Extract coverage percentage
+        if: github.event_name == 'push'
         id: coverage
         run: |
           if [ -f "./coverage/coverage-summary.json" ]; then
