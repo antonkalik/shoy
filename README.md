@@ -22,7 +22,7 @@ yarn add shoy
 
 **Requirements:**
 - React >= 16.0.0
-- Node.js >= 22.15.x
+- Node.js >= 18
 
 ## Basic Usage
 
