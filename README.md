@@ -4,6 +4,17 @@
     <img width="900" height="340" alt="Shoy Banner" src="https://github.com/user-attachments/assets/df770f3f-faf9-46d4-a3a6-b323b7b7023d" />
 </div>
 
+<div style="text-align: center;">
+
+[![CI](https://github.com/antonkalik/shoy/workflows/CI/badge.svg)](https://github.com/antonkalik/shoy/actions)
+[![npm version](https://img.shields.io/npm/v/shoy.svg)](https://www.npmjs.com/package/shoy)
+[![npm downloads](https://img.shields.io/npm/dm/shoy.svg)](https://www.npmjs.com/package/shoy)
+[![minified](https://img.shields.io/badge/bundle%20size-1.3KB-brightgreen.svg)](https://bundlephobia.com/package/shoy)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg)](http://www.typescriptlang.org/)
+
+</div>
+
 > **⚠️ BETA WARNING**: This project is currently in **BETA** and is **NOT recommended for production use** until it reaches stable status. The API may change without notice.
 
 State as Encrypted Diff Patches. Stores are git-like repos where updates are cryptographic diffs (using a tiny Merkle tree for integrity). Components "checkout" commits via selectors. It's tamper-proof, versioned, and offline-first—nothing like event machines or anyone else's data blobs.
