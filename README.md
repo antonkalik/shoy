@@ -73,7 +73,7 @@ const store = new Shoy(initialState, {
 
 Subscribe to specific parts of the state with different selector patterns:
 
-```typescript
+```tsx
 import { useGet, useApply } from 'shoy';
 
 function Counter() {
@@ -90,7 +90,7 @@ function Counter() {
 
 Get a stable callback function for state updates with various update patterns:
 
-```typescript
+```tsx
 function CounterControls() {
   const apply = useApply(store);
   
@@ -141,7 +141,7 @@ const success = await store.revert(someHash);
 ```
 
 **Full example with React:**
-```typescript
+```tsx
 function HistoryControls() {
   const history = useGet(store, () => store.history);
   const apply = useApply(store);
