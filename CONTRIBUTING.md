@@ -31,12 +31,17 @@ Enhancement suggestions are tracked as [GitHub Issues](https://github.com/antonk
 Pull requests are welcome! Please follow these guidelines:
 
 1. **Fork the repository**
-2. **Create a feature branch** from `main`
+2. **Create a feature branch** from `main` using descriptive branch names:
+   - `feat/feature-name` for new features
+   - `fix/bug-description` for bug fixes
+   - `docs/topic` for documentation updates
+   - `refactor/component-name` for refactoring
+   - `test/test-name` for adding/updating tests
 3. **Make your changes**
 4. **Write/update tests** - ensure all tests pass
 5. **Update documentation** if needed
 6. **Follow code style** - run `pnpm test` before submitting
-7. **Write a clear commit message** using conventional commits
+7. **Use Commitizen for commits** - run `pnpm commit` instead of `git commit` to ensure proper commit message format
 
 ## Development Setup
 
@@ -70,7 +75,19 @@ pnpm typecheck
 
 ## Commit Message Format
 
-We use [Conventional Commits](https://www.conventionalcommits.org/) format:
+We use [Conventional Commits](https://www.conventionalcommits.org/) format with Commitizen. 
+
+### How to Commit
+
+**Use Commitizen** - Don't use `git commit` directly. Instead:
+
+```bash
+pnpm commit
+```
+
+This will launch an interactive prompt that ensures your commits follow the correct format.
+
+### Format
 
 ```
 type(scope): description
@@ -80,12 +97,30 @@ type(scope): description
 [optional footer]
 ```
 
-Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
+### Types
 
-Examples:
+- `feat`: A new feature
+- `fix`: A bug fix
+- `docs`: Documentation only changes
+- `style`: Code style changes (formatting, missing semicolons, etc.)
+- `refactor`: Code refactoring without feature changes or bug fixes
+- `test`: Adding missing tests or correcting existing tests
+- `chore`: Maintenance tasks (dependencies, config, etc.)
+- `build`: Changes to build system or external dependencies
+
+### Examples
+
 - `feat(store): add maxHistory option`
 - `fix(subscribe): handle unsubscribe properly`
 - `docs(readme): update API examples`
+- `test(hooks): add tests for useGet hook`
+- `refactor(types): simplify Patch type definition`
+
+### Important Notes
+
+- ⚠️ **All PRs to `main` must use conventional commits** - This is required for semantic-release to work correctly
+- 🔒 **Direct pushes to `main` are not allowed** - You must create a PR
+- ✅ **PR must be approved** before merging
 
 ## Testing
 
