@@ -30,8 +30,9 @@ npm install shoy
 ```
 
 **Requirements:**
-- React >= 16.0.0
-- Node.js >= 18
+
+⚛️ React >= 16.0.0 \
+🟢 Node.js >= 18
 
 ## Basic Usage
 
@@ -299,6 +300,15 @@ const store = new Shoy<MyState>({ items: [], filter: '' });
 const filter = useGet(store, s => s.filter);
 const apply = useApply(store);
 ```
+
+## Contributing
+
+Contributions are welcome! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+When contributing, remember:
+- Use `pnpm commit` instead of `git commit` (Conventional Commits required)
+- All PRs to `main` must be approved
+- Follow the branch naming convention: `feat/`, `fix/`, `docs/`, etc.
 
 ## License
 

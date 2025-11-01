@@ -2,6 +2,8 @@
 
 <!-- Please include a summary of the changes and the related issue if any -->
 
+**Important:** This PR uses conventional commits as required for semantic-release. All commits should follow the format `type(scope): description`.
+
 ## Type of Change
 
 <!-- Select the type of change(s) this PR introduces -->
