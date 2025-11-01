@@ -17,7 +17,7 @@
 
 > **⚠️ BETA WARNING**: This project is currently in **BETA** and is **NOT recommended for production use** until it reaches stable status. The API may change without notice.
 
-State as Encrypted Diff Patches. Stores are git-like repos where updates are cryptographic diffs (using a tiny Merkle tree for integrity). Components "checkout" commits via selectors. It's tamper-proof, versioned, and offline-first—nothing like event machines or anyone else's data blobs.
+State as Encrypted Diff Patches. Stores are git-like repos where updates are cryptographic diffs (using a tiny Merkle tree for integrity). Components "checkout" commits via selectors. It's tamper-proof, versioned, and offline-first.
 
 ## Installation
 
