@@ -210,69 +210,183 @@ console.log('New state hash:', newHash);
 
 ## API Reference
 
-### `new Shoy<S>(initialState: S, options?: Options)`
+### React Hooks
 
-Creates a new Shoy store instance.
-
-**Parameters:**
-- `initialState`: The initial state value
-- `options`: Optional configuration object
-  - `maxHistory?: number`: Maximum history versions (default: 0)
-  - `onError?: (error: Error, context: string) => void`: Error handler
-
-### `useGet<S, R>(store: Shoy<S>, selector: (state: S) => R): R`
+#### `useGet<S, R>(store, selector)`
 
 React hook that subscribes to state changes and returns the selected value.
 
+```typescript
+function useGet<S, R>(
+  store: Shoy<S>,
+  selector: (state: S) => R
+): R
+```
+
 **Parameters:**
-- `store`: The Shoy store instance
-- `selector`: Function that selects a portion of the state
+- `store` - The Shoy store instance
+- `selector` - Function that selects a portion of the state
 
 **Returns:** The selected value from state
 
-### `useApply<S>(store: Shoy<S>): (patch: Patch<S>) => Promise<Hash>`
+**Example:**
+```typescript
+const count = useGet(store, (s) => s.count);
+const userName = useGet(store, (s) => s.user.name);
+```
+
+---
+
+#### `useApply<S>(store)`
 
 React hook that returns a stable function to apply state patches.
 
+```typescript
+function useApply<S>(
+  store: Shoy<S>
+): (patch: Patch<S>) => Promise<Hash>
+```
+
 **Parameters:**
-- `store`: The Shoy store instance
+- `store` - The Shoy store instance
 
 **Returns:** A function that applies patches and returns a promise with the new hash
 
-### `store.apply(patch: Patch<S>): Promise<Hash>`
+**Example:**
+```typescript
+const apply = useApply(store);
+await apply({ count: 10 });
+await apply((prev) => ({ count: prev.count + 1 }));
+```
 
-Applies a patch to the state.
+---
+
+### Store Constructor
+
+#### `new Shoy<S>(initialState, options?)`
+
+Creates a new Shoy store instance.
+
+```typescript
+class Shoy<S> {
+  constructor(
+    initialState: S,
+    options?: Options
+  )
+}
+```
 
 **Parameters:**
-- `patch`: Either a partial state object or a function `(prev: S) => Partial<S>`
+- `initialState` - The initial state value
+- `options` - Optional configuration object
+  - `maxHistory?: number` - Maximum history versions (default: `0`)
+  - `onError?: (error: Error, context: string) => void` - Error handler callback
+
+**Example:**
+```typescript
+const store = new Shoy({ count: 0 }, { maxHistory: 50 });
+```
+
+---
+
+### Store Methods & Properties
+
+#### `store.apply(patch)`
+
+Applies a patch to the state and returns the new state hash.
+
+```typescript
+apply(patch: Patch<S>): Promise<Hash>
+```
+
+**Parameters:**
+- `patch` - Either a partial state object or a function `(prev: S) => Partial<S>`
 
 **Returns:** Promise that resolves to the new state hash
 
-### `store.current: S`
+**Example:**
+```typescript
+const hash = await store.apply({ count: 42 });
+await store.apply((prev) => ({ count: prev.count + 1 }));
+```
+
+---
+
+#### `store.current`
 
 Synchronously returns the current state.
 
-### `store.subscribe(callback: (hash: Hash) => void): () => void`
+```typescript
+get current(): S
+```
 
-Subscribes to state changes.
+**Example:**
+```typescript
+const currentState = store.current;
+console.log(currentState.count);
+```
+
+---
+
+#### `store.subscribe(callback)`
+
+Subscribes to state changes and returns an unsubscribe function.
+
+```typescript
+subscribe(callback: (hash: Hash) => void): () => void
+```
 
 **Parameters:**
-- `callback`: Function called when state changes, receives the new hash
+- `callback` - Function called when state changes, receives the new hash
 
 **Returns:** Unsubscribe function
 
-### `store.history: Hash[]`
+**Example:**
+```typescript
+const unsubscribe = store.subscribe((hash) => {
+  console.log('State changed:', hash);
+});
+unsubscribe();
+```
+
+---
+
+#### `store.history`
 
 Returns an array of all available state hashes (only when `maxHistory > 0`).
 
-### `store.revert(hash: Hash): Promise<boolean>`
+```typescript
+get history(): Hash[]
+```
 
-Reverts the state to a previous version.
+**Example:**
+```typescript
+const store = new Shoy(initialState, { maxHistory: 20 });
+const hashes = store.history; // ['hash1', 'hash2', ...]
+```
+
+---
+
+#### `store.revert(hash)`
+
+Reverts the state to a previous version by hash.
+
+```typescript
+revert(hash: Hash): Promise<boolean>
+```
 
 **Parameters:**
-- `hash`: The hash of the state to revert to
+- `hash` - The hash of the state to revert to
 
 **Returns:** Promise that resolves to `true` if successful, `false` otherwise
+
+**Example:**
+```typescript
+const success = await store.revert('abc123');
+if (success) {
+  console.log('Reverted successfully');
+}
+```
 
 ## Performance
 
