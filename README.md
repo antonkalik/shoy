@@ -1,9 +1,7 @@
 # Shoy
 
-<div align="center">
-
-<img width="900" height="340" alt="Shoy Banner" src="https://github.com/user-attachments/assets/df770f3f-faf9-46d4-a3a6-b323b7b7023d" />
-
+<div style="text-align: center;">
+    <img width="900" height="340" alt="Shoy Banner" src="https://github.com/user-attachments/assets/df770f3f-faf9-46d4-a3a6-b323b7b7023d" />
 </div>
 
 > **⚠️ BETA WARNING**: This project is currently in **BETA** and is **NOT recommended for production use** until it reaches stable status. The API may change without notice.
@@ -47,7 +45,7 @@ const initialState: AppState = {
   },
 };
 
-const store = new Shoy(initialState);
+const store = new Shoy<AppState>(initialState);
 ```
 
 ### Advanced Store Configuration
