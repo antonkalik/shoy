@@ -32,7 +32,34 @@ jobs:
       - name: Extract coverage percentage
         id: coverage
         run: |
-          COVERAGE=$(node -e "const fs = require('fs'); const data = JSON.parse(fs.readFileSync('./coverage/coverage-summary.json', 'utf8')); console.log(Math.round(data.total.lines.pct))")
+          if [ -f "./coverage/coverage-summary.json" ]; then
+            COVERAGE=$(node -e "const fs = require('fs'); const data = JSON.parse(fs.readFileSync('./coverage/coverage-summary.json', 'utf8')); console.log(Math.round(data.total.lines.pct))")
+          else
+            COVERAGE=$(node -e "
+              const fs = require('fs');
+              const data = JSON.parse(fs.readFileSync('./coverage/coverage-final.json', 'utf8'));
+              let totalLines = 0;
+              let coveredLines = 0;
+              Object.values(data).forEach(file => {
+                if (file.statementMap && file.s) {
+                  const lines = new Set();
+                  Object.values(file.statementMap).forEach(stmt => {
+                    for (let i = stmt.start.line; i <= stmt.end.line; i++) lines.add(i);
+                  });
+                  totalLines += lines.size;
+                  const coveredLinesInFile = new Set();
+                  Object.entries(file.s).forEach(([idx, count]) => {
+                    if (count > 0 && file.statementMap[idx]) {
+                      const stmt = file.statementMap[idx];
+                      for (let i = stmt.start.line; i <= stmt.end.line; i++) coveredLinesInFile.add(i);
+                    }
+                  });
+                  coveredLines += coveredLinesInFile.size;
+                }
+              });
+              console.log(Math.round((coveredLines / totalLines) * 100));
+            ")
+          fi
           echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
           echo "Coverage: $COVERAGE%"
 

@@ -18,6 +18,7 @@ module.exports = {
     "^react-dom$": require.resolve("react-dom"),
   },
   collectCoverageFrom: ["src/**/*.{ts,tsx}", "!src/**/*.d.ts"],
+  coverageReporters: ["text", "json", "json-summary", "lcov"],
   coverageThreshold: {
     global: {
       branches: 80,
