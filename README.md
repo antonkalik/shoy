@@ -1,10 +1,10 @@
 # Shoy
 
 <div style="text-align: center;">
-    <img width="900" height="340" alt="Shoy Banner" src="https://github.com/user-attachments/assets/ddb51e78-6751-413c-aef5-5e765f052cea" />
+    <img alt="Shoy Banner" src="https://github.com/user-attachments/assets/ddb51e78-6751-413c-aef5-5e765f052cea" />
 </div>
 
-<div style="text-align: center;">
+<div style="text-align: center; width: 100%">
 
 [![npm version](https://img.shields.io/npm/v/shoy.svg)](https://www.npmjs.com/package/shoy)
 [![npm downloads](https://img.shields.io/npm/dm/shoy.svg)](https://www.npmjs.com/package/shoy)
