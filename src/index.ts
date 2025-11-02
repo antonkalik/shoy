@@ -24,7 +24,7 @@ export class Shoy<S> {
 
     try {
       this.validateState(initialState);
-      const initHash = this.syncHash(initialState);
+      const initHash = this.hash(initialState);
       this.versions.set(initHash, initialState);
       this.rootHash = initHash;
     } catch (error) {
@@ -33,12 +33,53 @@ export class Shoy<S> {
     }
   }
 
-  private syncHash(state: S): Hash {
-    if (typeof state !== "object" || state === null) {
+  private isObject<T>(value: T): boolean {
+    return typeof value === "object" && value !== null;
+  }
+
+  private isPrimitive<T>(value: T): boolean {
+    return typeof value !== "object" || value === null;
+  }
+
+  private deepMerge<T>(prev: T, patch: Partial<T>): T {
+    if (this.isPrimitive(prev) || this.isPrimitive(patch)) {
+      return patch as T;
+    }
+
+    if (Array.isArray(prev) || Array.isArray(patch)) {
+      return patch as T;
+    }
+
+    const result = { ...(prev as object) } as T;
+    for (const key in patch) {
+      if (patch.hasOwnProperty(key)) {
+        const prevValue = (prev as Record<string, unknown>)[key];
+        const patchValue = patch[key];
+
+        if (
+          this.isObject(prevValue) &&
+          this.isObject(patchValue) &&
+          !Array.isArray(prevValue) &&
+          !Array.isArray(patchValue)
+        ) {
+          (result as Record<string, unknown>)[key] = this.deepMerge(
+            prevValue,
+            patchValue as Partial<typeof prevValue>,
+          );
+        } else {
+          (result as Record<string, unknown>)[key] = patchValue;
+        }
+      }
+    }
+    return result;
+  }
+
+  private hash(state: S): Hash {
+    if (this.isPrimitive(state)) {
       return "p" + String(state);
     }
 
-    const hashStr = this.fastObjectHash(state);
+    const hashStr = this.fastObjectHash<S>(state);
     let h = 5381;
     for (let i = 0; i < hashStr.length; i++) {
       h = (h * 33) ^ hashStr.charCodeAt(i);
@@ -46,45 +87,29 @@ export class Shoy<S> {
     return "i" + (h >>> 0).toString(36);
   }
 
-  private async hash(state: S): Promise<Hash> {
-    if (typeof state !== "object" || state === null) {
-      return "p" + String(state);
-    }
-
-    const hashStr = this.fastObjectHash(state);
-    const enc = new TextEncoder();
-    const buf = enc.encode(hashStr);
-    const digest = await crypto.subtle.digest("SHA-256", buf);
-    return Array.from(new Uint8Array(digest))
-      .map((b) => b.toString(16).padStart(2, "0"))
-      .join("");
-  }
-
-  private fastObjectHash(obj: object): string {
+  private fastObjectHash<S>(obj: S): string {
     if (Array.isArray(obj)) {
       return (
         "[" +
         obj
           .map((item) =>
-            typeof item === "object" && item !== null
-              ? this.fastObjectHash(item)
-              : String(item),
+            this.isObject(item) ? this.fastObjectHash(item) : String(item),
           )
           .join(",") +
         "]"
       );
     }
 
-    const keys = Object.keys(obj).sort();
+    const keys = Object.keys(obj as Record<string, unknown>).sort();
+
     return (
       "{" +
       keys
         .map((key) => {
           const value = (obj as Record<string, unknown>)[key];
-          const valueStr =
-            typeof value === "object" && value !== null
-              ? this.fastObjectHash(value)
-              : String(value);
+          const valueStr = this.isObject(value)
+            ? this.fastObjectHash(value as object)
+            : String(value);
           return `${key}:${valueStr}`;
         })
         .join(",") +
@@ -92,51 +117,11 @@ export class Shoy<S> {
     );
   }
 
-  private isEqual(a: S, b: S): boolean {
-    if (
-      typeof a !== "object" ||
-      a === null ||
-      typeof b !== "object" ||
-      b === null
-    ) {
-      return Object.is(a, b);
-    }
-
-    if (a === b) return true;
-    if (a.constructor !== b.constructor) return false;
-
-    if (Array.isArray(a) && Array.isArray(b)) {
-      if (a.length !== b.length) return false;
-      for (let i = 0; i < a.length; i++) {
-        if (!this.isEqual(a[i], b[i])) return false;
-      }
-      return true;
-    }
-
-    const keysA = Object.keys(a);
-    const keysB = Object.keys(b);
-
-    if (keysA.length !== keysB.length) return false;
-
-    for (const key of keysA) {
-      if (!keysB.includes(key)) return false;
-      if (
-        !this.isEqual(
-          (a as Record<string, unknown>)[key] as S,
-          (b as Record<string, unknown>)[key] as S,
-        )
-      )
-        return false;
-    }
-
-    return true;
-  }
-
-  private async commit(state: S): Promise<Hash> {
+  private commit(state: S): Hash {
     try {
       this.validateState(state);
 
-      const hash = await this.hash(state);
+      const hash = this.hash(state);
 
       this.versions.set(hash, state);
 
@@ -157,16 +142,26 @@ export class Shoy<S> {
     }
   }
 
-  async apply(patch: Patch<S>): Promise<Hash> {
+  apply(patch: Patch<S>): Hash {
     try {
       const prev = this.current;
-      const next = typeof patch === "function" ? patch(prev) : patch;
+      const patchResult = typeof patch === "function" ? patch(prev) : patch;
 
-      if (this.isEqual(prev, next)) {
+      if (this.isPrimitive(prev) && this.isPrimitive(patchResult)) {
+        if (Object.is(prev, patchResult)) {
+          return this.rootHash;
+        }
+        return this.commit(patchResult as S);
+      }
+
+      const next = this.deepMerge(prev, patchResult as Partial<S>);
+
+      const nextHash = this.hash(next);
+      if (nextHash === this.rootHash) {
         return this.rootHash;
       }
 
-      return await this.commit(next);
+      return this.commit(next);
     } catch (error) {
       this.handleError(error as Error, "apply");
       throw error;
@@ -191,10 +186,32 @@ export class Shoy<S> {
     this.listeners.forEach((cb) => cb(hash));
   }
 
-  async revert(hash: Hash): Promise<boolean> {
+  revert(hash: Hash): boolean {
     if (this.maxHistory === 0 || !this.versions.has(hash)) return false;
     this.rootHash = hash;
     this.notify(hash);
+    return true;
+  }
+
+  undo(): boolean {
+    if (this.maxHistory === 0) return false;
+    const currentIdx = this.history.indexOf(this.rootHash);
+    if (currentIdx <= 0) return false;
+
+    const prevHash = this.history[currentIdx - 1];
+    this.rootHash = prevHash;
+    this.notify(prevHash);
+    return true;
+  }
+
+  redo(): boolean {
+    if (this.maxHistory === 0) return false;
+    const currentIdx = this.history.indexOf(this.rootHash);
+    if (currentIdx >= this.history.length - 1) return false;
+
+    const nextHash = this.history[currentIdx + 1];
+    this.rootHash = nextHash;
+    this.notify(nextHash);
     return true;
   }
 
@@ -235,7 +252,7 @@ export class Shoy<S> {
 
     if (Array.isArray(obj)) {
       for (const item of obj) {
-        if (typeof item === "object" && item !== null) {
+        if (this.isObject(item)) {
           this.checkCircularReference(item, new Set(visited));
         }
       }
@@ -251,14 +268,19 @@ export class Shoy<S> {
 
 export function useGet<S, R>(store: Shoy<S>, selector: (state: S) => R): R {
   const [value, setValue] = React.useState<R>(() => selector(store.current));
+  const selectorRef = React.useRef(selector);
+
+  React.useEffect(() => {
+    selectorRef.current = selector;
+  });
 
   React.useEffect(() => {
     const update = () => {
-      const next = selector(store.current);
+      const next = selectorRef.current(store.current);
       setValue((prev) => (Object.is(prev, next) ? prev : next));
     };
     return store.subscribe(update);
-  }, [store, selector]);
+  }, [store]);
 
   return value;
 }

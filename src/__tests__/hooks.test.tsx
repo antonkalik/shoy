@@ -51,7 +51,7 @@ describe("useGet", () => {
     expect(getByTestId("doubled").textContent).toBe("10");
   });
 
-  it("should re-render when state changes", async () => {
+  it("should re-render when state changes", () => {
     const store = new Shoy({ count: 0 });
     const renderCount = jest.fn();
 
@@ -65,15 +65,15 @@ describe("useGet", () => {
     expect(getByTestId("count").textContent).toBe("0");
     const initialRenders = renderCount.mock.calls.length;
 
-    await act(async () => {
-      await store.apply({ count: 10 });
+    act(() => {
+      store.apply({ count: 10 });
     });
 
     expect(renderCount.mock.calls.length).toBeGreaterThan(initialRenders);
     expect(getByTestId("count").textContent).toBe("10");
   });
 
-  it("should not re-render when selected value unchanged", async () => {
+  it("should not re-render when selected value unchanged", () => {
     const store = new Shoy({ count: 0, name: "Alice" });
     const renderCount = jest.fn();
 
@@ -86,8 +86,8 @@ describe("useGet", () => {
     const { getByTestId } = render(<TestComponent />);
     const initialRenders = renderCount.mock.calls.length;
 
-    await act(async () => {
-      await store.apply({ count: 0, name: "Bob" });
+    act(() => {
+      store.apply({ count: 0, name: "Bob" });
     });
 
     expect(getByTestId("count").textContent).toBe("0");
@@ -159,7 +159,7 @@ describe("useApply", () => {
     expect(firstRef).toBe(secondRef);
   });
 
-  it("should apply partial update", async () => {
+  it("should apply partial update", () => {
     const store = new Shoy({ count: 0, name: "Alice" });
     let applyFn: any;
 
@@ -172,14 +172,14 @@ describe("useApply", () => {
     const { getByTestId } = render(<TestComponent />);
     expect(getByTestId("count").textContent).toBe("0");
 
-    await act(async () => {
-      await applyFn({ count: 42 });
+    act(() => {
+      applyFn({ count: 42 });
     });
 
     expect(getByTestId("count").textContent).toBe("42");
   });
 
-  it("should apply functional update", async () => {
+  it("should apply functional update", () => {
     const store = new Shoy({ count: 0 });
     let applyFn: any;
 
@@ -191,14 +191,14 @@ describe("useApply", () => {
 
     const { getByTestId } = render(<TestComponent />);
 
-    await act(async () => {
-      await applyFn((prev: any) => ({ count: prev.count + 5 }));
+    act(() => {
+      applyFn((prev: any) => ({ count: prev.count + 5 }));
     });
 
     expect(getByTestId("count").textContent).toBe("5");
   });
 
-  it("should work with nested updates", async () => {
+  it("should work with nested updates", () => {
     const store = new Shoy({ user: { name: "Alice", age: 30 } });
     let applyFn: any;
 
@@ -210,8 +210,8 @@ describe("useApply", () => {
 
     const { getByTestId } = render(<TestComponent />);
 
-    await act(async () => {
-      await applyFn({ user: { age: 31 } });
+    act(() => {
+      applyFn({ user: { age: 31 } });
     });
 
     expect(getByTestId("age").textContent).toBe("31");
@@ -219,7 +219,7 @@ describe("useApply", () => {
 });
 
 describe("hooks integration", () => {
-  it("should work together in same component", async () => {
+  it("should work together in same component", () => {
     const store = new Shoy({ count: 0 });
 
     function Counter() {
@@ -243,14 +243,14 @@ describe("hooks integration", () => {
     expect(getByTestId("count").textContent).toBe("0");
 
     const button = getByTestId("increment");
-    await act(async () => {
+    act(() => {
       button.click();
     });
 
     expect(getByTestId("count").textContent).toBe("1");
   });
 
-  it("should handle complex state interactions", async () => {
+  it("should handle complex state interactions", () => {
     const store = new Shoy({ items: [{ id: 1, name: "Item 1" }] });
 
     function ItemList() {
@@ -280,7 +280,7 @@ describe("hooks integration", () => {
     expect(getByTestId("count").textContent).toBe("1");
 
     const button = getByTestId("add");
-    await act(async () => {
+    act(() => {
       button.click();
     });
 
