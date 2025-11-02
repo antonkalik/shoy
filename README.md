@@ -477,7 +477,7 @@ Shoy store is optimized for performance:
 
 Patches support both replacement and deep merging; selectors skip unchanged diffs, making it ideal for multi-store needs without the overhead of proxies, atoms, machines, or full-tree diffing.
 
-### Advantages of Shoy
+### Advantages
 
 **Unique Features:**
 - **Content-addressed hashing** - Deterministic state IDs for deduplication

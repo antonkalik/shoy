@@ -1,10 +1,10 @@
 import * as React from "react";
 
-type Patch<S> = S extends object
+export type Patch<S> = S extends object
   ? Partial<S> | ((prev: S) => Partial<S>)
   : S | ((prev: S) => S);
 
-type Hash = string;
+export type Hash = string;
 
 interface Options {
   maxHistory?: number;
@@ -266,24 +266,7 @@ export class Shoy<S> {
   }
 }
 
-export function useGet<S, R>(store: Shoy<S>, selector: (state: S) => R): R {
-  const [value, setValue] = React.useState<R>(() => selector(store.current));
-  const selectorRef = React.useRef(selector);
-
-  React.useEffect(() => {
-    selectorRef.current = selector;
-  });
-
-  React.useEffect(() => {
-    const update = () => {
-      const next = selectorRef.current(store.current);
-      setValue((prev) => (Object.is(prev, next) ? prev : next));
-    };
-    return store.subscribe(update);
-  }, [store]);
-
-  return value;
-}
+export { useSelector as useGet } from './utils/query';
 
 export function useApply<S>(store: Shoy<S>) {
   return React.useCallback((patch: Patch<S>) => store.apply(patch), [store]);
