@@ -10,8 +10,9 @@ interface Snapshot {
 
 class DevTools {
   private snapshots: Snapshot[] = [];
-  private maxSnapshots: number;
+  private readonly maxSnapshots: number;
   private listeners = new Set<(snapshots: Snapshot[]) => void>();
+  unsubscribe?: () => void;
 
   constructor(options: DevToolsOptions = {}) {
     this.maxSnapshots = options.maxSnapshots ?? 100;
@@ -48,6 +49,15 @@ class DevTools {
     this.notify();
   }
 
+  destroy(): void {
+    if (this.unsubscribe) {
+      this.unsubscribe();
+      this.unsubscribe = undefined;
+    }
+    this.snapshots = [];
+    this.listeners.clear();
+  }
+
   private notify(): void {
     this.listeners.forEach(cb => cb(this.snapshots));
   }
@@ -70,7 +80,7 @@ class DevTools {
 export function useDevTools<S>(store: Shoy<S>, options: DevToolsOptions = {}): DevTools {
   const devtools = new DevTools(options);
 
-  store.subscribe((hash) => {
+  devtools.unsubscribe = store.subscribe((hash) => {
     devtools.record(hash, store.current);
   });
 
