@@ -73,7 +73,7 @@ class SyncManager<S> {
     this.unsubscribe = this.store.subscribe((hash) => {
       if (this.socket?.readyState === WebSocket.OPEN) {
         const message: SyncMessage = {
-          hash,
+          hash: this.store.currentHash,
           state: this.store.current,
           timestamp: Date.now(),
         };
@@ -83,7 +83,7 @@ class SyncManager<S> {
   }
 
   private handleRemoteUpdate(message: SyncMessage): void {
-    const localHash = this.getLocalHash();
+    const localHash = this.store.currentHash;
     
     if (localHash === message.hash) {
       return;
@@ -97,20 +97,6 @@ class SyncManager<S> {
       this.store.apply(resolved as Patch<S>);
     } else {
       this.store.apply(message.state as Patch<S>);
-    }
-  }
-
-  private getLocalHash(): string {
-    try {
-      const state = this.store.current;
-      const hashStr = JSON.stringify(state);
-      let h = 5381;
-      for (let i = 0; i < hashStr.length; i++) {
-        h = (h * 33) ^ hashStr.charCodeAt(i);
-      }
-      return 'i' + (h >>> 0).toString(36);
-    } catch {
-      return '';
     }
   }
 

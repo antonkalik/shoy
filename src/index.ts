@@ -178,6 +178,10 @@ export class Shoy<S> {
     return state;
   }
 
+  get currentHash(): Hash {
+    return this.rootHash;
+  }
+
   subscribe(cb: (hash: Hash) => void): () => void {
     this.listeners.add(cb);
     return () => this.listeners.delete(cb);
