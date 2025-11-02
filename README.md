@@ -1,7 +1,7 @@
 # Shoy
 
 <div style="text-align: center;">
-    <img width="900" height="340" alt="Shoy Banner" src="https://github.com/user-attachments/assets/742a8b5d-690c-403d-aee3-2acef5d9b948" />
+    <img width="900" height="340" alt="Shoy Banner" src="https://github.com/user-attachments/assets/ddb51e78-6751-413c-aef5-5e765f052cea" />
 </div>
 
 <div style="text-align: center;">
