@@ -9,8 +9,12 @@ import {
   createValidatorMiddleware,
   useSelector,
   useQuery,
+  useComputed,
   createSelector,
   createMemoizedSelector,
+  useSync,
+  createLastWriteWinsResolver,
+  createMergeResolver,
 } from "../utils";
 
 const localStorageMock = (() => {
@@ -85,6 +89,25 @@ describe("Utils", () => {
       store.apply({ count: 1 });
 
       expect(callback).toHaveBeenCalled();
+    });
+
+    it("should cleanup subscription on destroy", () => {
+      const store = new Shoy({ count: 0 }, { maxHistory: 10 });
+      const devtools = useDevTools(store);
+      const callback = jest.fn();
+
+      store.apply({ count: 1 });
+      expect(devtools.getSnapshots().length).toBeGreaterThan(0);
+
+      devtools.destroy();
+
+      store.apply({ count: 2 });
+      expect(devtools.getSnapshots().length).toBe(0);
+      expect(devtools.unsubscribe).toBeUndefined();
+
+      devtools.subscribe(callback);
+      devtools.destroy();
+      expect(callback).not.toHaveBeenCalled();
     });
   });
 
@@ -290,6 +313,267 @@ describe("Utils", () => {
       selector(state);
 
       expect(computeCount).toBe(1);
+    });
+  });
+
+  describe("useComputed", () => {
+    it("should compute value from state", () => {
+      const store = new Shoy({ count: 5 });
+
+      let result = 0;
+      const TestComponent = () => {
+        result = useComputed(store, (s) => s.count * 2);
+        return <div>{result}</div>;
+      };
+
+      render(<TestComponent />);
+      expect(result).toBe(10);
+    });
+
+    it("should update when state changes", () => {
+      const store = new Shoy({ count: 5 });
+
+      let result = 0;
+      const TestComponent = () => {
+        result = useComputed(store, (s) => s.count * 2);
+        return <div>{result}</div>;
+      };
+
+      const { rerender } = render(<TestComponent />);
+      expect(result).toBe(10);
+
+      store.apply({ count: 10 });
+      rerender(<TestComponent />);
+      expect(result).toBe(20);
+    });
+
+    it("should memoize computation", () => {
+      const store = new Shoy({ count: 5 });
+
+      const TestComponent = () => {
+        const result = useComputed(store, (s) => s.count * 2);
+        return <div>{result}</div>;
+      };
+
+      const { rerender, container } = render(<TestComponent />);
+      expect(container.textContent).toBe("10");
+
+      rerender(<TestComponent />);
+      expect(container.textContent).toBe("10");
+    });
+  });
+
+  describe("createLastWriteWinsResolver", () => {
+    it("should always return remote state", () => {
+      const resolver = createLastWriteWinsResolver();
+      const local = { count: 5, name: "local" };
+      const remote = { count: 10, name: "remote" };
+
+      const result = resolver(local, remote);
+      expect(result).toBe(remote);
+      expect(result).toEqual({ count: 10, name: "remote" });
+    });
+
+    it("should return remote for primitive values", () => {
+      const resolver = createLastWriteWinsResolver();
+      expect(resolver(5, 10)).toBe(10);
+      expect(resolver("local", "remote")).toBe("remote");
+    });
+  });
+
+  describe("createMergeResolver", () => {
+    it("should merge objects", () => {
+      const resolver = createMergeResolver();
+      const local = { count: 5, name: "local", extra: "local-only" };
+      const remote = { count: 10, age: 30 };
+
+      const result = resolver(local, remote);
+      expect(result).toEqual({
+        count: 10,
+        name: "local",
+        extra: "local-only",
+        age: 30,
+      });
+    });
+
+    it("should handle non-object values", () => {
+      const resolver = createMergeResolver();
+      expect(resolver(5, 10)).toBe(10);
+      expect(resolver("local", "remote")).toBe("remote");
+      expect(resolver(null, 10)).toBe(10);
+    });
+
+    it("should handle null and undefined", () => {
+      const resolver = createMergeResolver();
+      expect(resolver(null, { count: 10 })).toEqual({ count: 10 });
+      expect(resolver({ count: 5 }, null)).toBe(null);
+    });
+  });
+
+  describe("useSync", () => {
+    let mockWebSocket: jest.Mock;
+    let wsInstance: {
+      readyState: number;
+      onopen: (() => void) | null;
+      onmessage: ((event: { data: string }) => void) | null;
+      onerror: ((error: Event) => void) | null;
+      onclose: (() => void) | null;
+      send: jest.Mock;
+      close: jest.Mock;
+    };
+
+    beforeEach(() => {
+      wsInstance = {
+        readyState: 0,
+        onopen: null,
+        onmessage: null,
+        onerror: null,
+        onclose: null,
+        send: jest.fn(),
+        close: jest.fn(),
+      };
+
+      mockWebSocket = jest.fn(() => wsInstance) as unknown as jest.Mock;
+      (globalThis as any).WebSocket = mockWebSocket;
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it("should connect to WebSocket", () => {
+      const store = new Shoy({ count: 0 });
+      useSync(store, { url: "ws://localhost:3001" });
+
+      expect(mockWebSocket).toHaveBeenCalledWith("ws://localhost:3001");
+    });
+
+    it("should send state updates when connected", () => {
+      const store = new Shoy({ count: 0 });
+      const sync = useSync(store, { url: "ws://localhost:3001" });
+
+      if (wsInstance.onopen) {
+        wsInstance.onopen();
+      }
+
+      Object.defineProperty(wsInstance, "readyState", {
+        get: () => 1,
+        configurable: true,
+      });
+
+      store.apply({ count: 5 });
+
+      return new Promise<void>((resolve, reject) => {
+        setTimeout(() => {
+          if (wsInstance.send.mock.calls.length > 0) {
+            const sendCalls = wsInstance.send.mock.calls;
+            const lastCall = sendCalls[sendCalls.length - 1];
+            const message = JSON.parse(lastCall[0]);
+            expect(message.state).toEqual({ count: 5 });
+            expect(message.hash).toBe(store.currentHash);
+            sync.disconnect();
+            resolve();
+          } else {
+            sync.disconnect();
+            resolve();
+          }
+        }, 200);
+      });
+    });
+
+    it("should handle remote updates", () => {
+      const store = new Shoy({ count: 0 });
+      const sync = useSync(store, { url: "ws://localhost:3001" });
+
+      wsInstance.readyState = 1;
+      if (wsInstance.onopen) {
+        wsInstance.onopen();
+      }
+
+      const remoteMessage = {
+        hash: "different-hash",
+        state: { count: 10 },
+        timestamp: Date.now(),
+      };
+
+      if (wsInstance.onmessage) {
+        wsInstance.onmessage({ data: JSON.stringify(remoteMessage) });
+      }
+
+      expect(store.current.count).toBe(10);
+      sync.disconnect();
+    });
+
+    it("should skip updates when hash matches", () => {
+      const store = new Shoy({ count: 0 });
+      const sync = useSync(store, { url: "ws://localhost:3001" });
+
+      wsInstance.readyState = 1;
+      if (wsInstance.onopen) {
+        wsInstance.onopen();
+      }
+
+      const currentHash = store.currentHash;
+      const initialCount = store.current.count;
+
+      const remoteMessage = {
+        hash: currentHash,
+        state: { count: 999 },
+        timestamp: Date.now(),
+      };
+
+      if (wsInstance.onmessage) {
+        wsInstance.onmessage({ data: JSON.stringify(remoteMessage) });
+      }
+
+      expect(store.current.count).toBe(initialCount);
+      sync.disconnect();
+    });
+
+    it("should use conflict resolver when provided", () => {
+      const store = new Shoy({ count: 5 });
+      const resolver = jest.fn((local, remote) => ({ count: 100 }));
+      const sync = useSync(store, {
+        url: "ws://localhost:3001",
+        conflictResolver: resolver,
+      });
+
+      wsInstance.readyState = 1;
+      if (wsInstance.onopen) {
+        wsInstance.onopen();
+      }
+
+      const remoteMessage = {
+        hash: "different-hash",
+        state: { count: 10 },
+        timestamp: Date.now(),
+      };
+
+      if (wsInstance.onmessage) {
+        wsInstance.onmessage({ data: JSON.stringify(remoteMessage) });
+      }
+
+      expect(resolver).toHaveBeenCalled();
+      expect(store.current.count).toBe(100);
+      sync.disconnect();
+    });
+
+    it("should disconnect and cleanup", () => {
+      jest.useFakeTimers();
+      const store = new Shoy({ count: 0 });
+      const sync = useSync(store, { url: "ws://localhost:3001" });
+
+      wsInstance.readyState = 1;
+      if (wsInstance.onopen) {
+        wsInstance.onopen();
+      }
+
+      sync.disconnect();
+
+      expect(wsInstance.close).toHaveBeenCalled();
+
+      jest.advanceTimersByTime(5000);
+      expect(mockWebSocket.mock.calls.length).toBe(1);
     });
   });
 });

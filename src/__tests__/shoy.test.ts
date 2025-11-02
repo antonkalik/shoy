@@ -94,8 +94,6 @@ describe("Shoy", () => {
       const circular: any = { name: "new" };
       circular.self = circular;
 
-      // Circular references now cause stack overflow instead of detected error
-      // This is acceptable for performance reasons
       expect(() => store.apply(circular)).toThrow(/Maximum call stack size exceeded/);
     });
   });
@@ -332,7 +330,7 @@ describe("Shoy", () => {
       store.apply({ count: 1 });
       store.apply({ count: 2 });
       store.undo();
-      store.apply({ count: 10 }); // Fork!
+      store.apply({ count: 10 });
 
       expect(store.redo()).toBe(false);
     });

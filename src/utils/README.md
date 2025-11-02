@@ -88,12 +88,19 @@ useMiddleware(store, createValidatorMiddleware(state => state.count >= 0));
 
 Set up WebSocket synchronization with a remote server. The sync instance automatically handles reconnection and conflict resolution. Can be disconnected later for cleanup.
 
+Use `createMergeResolver` to merge local and remote state, or `createLastWriteWinsResolver` to always use the remote state in conflicts.
+
 ```typescript
-import { useSync, createMergeResolver } from 'shoy/utils';
+import { useSync, createMergeResolver, createLastWriteWinsResolver } from 'shoy/utils';
 
 const sync = useSync(store, {
   url: 'ws://localhost:3001',
   conflictResolver: createMergeResolver()
+});
+
+const syncWithLastWriteWins = useSync(store, {
+  url: 'ws://localhost:3001',
+  conflictResolver: createLastWriteWinsResolver()
 });
 
 sync.disconnect();
@@ -108,15 +115,17 @@ sync.disconnect();
 - Computing derived values from state
 - Preventing unnecessary re-renders
 - Creating reusable selectors across components
-- Memorizing expensive computations
+- Memoizing expensive computations
 
-Use React hooks to subscribe to state selections. `useSelector` and `useQuery` are reactive hooks that update when the selected value changes. `createMemoizedSelector` helps optimize expensive selector functions.
+Use React hooks to subscribe to state selections. `useSelector` and `useQuery` are reactive hooks that update when the selected value changes. `useComputed` provides memoized computed values that only recalculate when dependencies change. `createSelector` creates reusable selector functions, and `createMemoizedSelector` helps optimize expensive selector functions with caching.
 
 ```typescript
-import { useSelector, useQuery, createMemoizedSelector } from 'shoy/utils';
+import { useSelector, useQuery, useComputed, createSelector, createMemoizedSelector } from 'shoy/utils';
 
 const count = useSelector(store, s => s.count);
 const total = useQuery(store, s => s.items.length);
+const doubled = useComputed(store, s => s.count * 2);
+const selector = createSelector(state => state.user.name);
 const memoized = createMemoizedSelector(state => state.user.name);
 ```
 
