@@ -19,18 +19,29 @@
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./utils": {
+      "types": "./dist/utils/index.d.ts",
+      "import": "./dist/utils/index.mjs",
+      "require": "./dist/utils/index.js"
+    }
+  },
   "private": false,
   "keywords": [
     "state-management",
     "react",
     "typescript",
     "state-store",
-    "merkle-tree",
+    "content-addressed",
     "diff-patches",
     "versioned-state",
     "time-travel",
     "offline-first",
-    "cryptographic",
     "immutable",
     "state-repository",
     "git-like",
@@ -42,7 +53,7 @@
     "email": "antonkalik@gmail.com",
     "url": "https://idedy.com"
   },
-  "description": "State management as encrypted diff patches",
+  "description": "Lightweight state management with fast hashing for automatic deduplication and history",
   "publishConfig": {
     "access": "public"
   },

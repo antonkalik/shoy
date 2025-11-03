@@ -1,7 +1,7 @@
 # Shoy
 
 <div style="text-align: center;">
-    <img alt="Shoy Banner" src="https://github.com/user-attachments/assets/ddb51e78-6751-413c-aef5-5e765f052cea" />
+    <img alt="Shoy Banner" src="docs/shoy-banner.png" />
 </div>
 
 <div style="text-align: center; width: 100%">
@@ -18,7 +18,7 @@
 
 > **⚠️ BETA WARNING**: This project is currently in **BETA** and is **NOT recommended for production use** until it reaches stable status. The API may change without notice.
 
-State as Encrypted Diff Patches. Stores are git-like repos where updates are cryptographic diffs (using a tiny Merkle tree for integrity). Components "checkout" commits via selectors. It's tamper-proof, versioned, and offline-first.
+State as Content-Addressed Versions. Stores are git-like repos where updates are content-addressed diffs using fast hashing. Components "checkout" commits via selectors. It's versioned, debuggable, and sync-friendly.
 
 ## Installation
 
@@ -139,40 +139,76 @@ function CounterControls() {
 
 ## Advanced Features
 
-### Time-Travel Debugging
+### Undo/Redo (Time-Travel)
 
 Navigate through state history when `maxHistory > 0`:
 
-```typescript
-const store = new Shoy(initialState, { maxHistory: 20 });
+**Basic Undo/Redo:**
 
-const history = store.history;
-const current = store.current;
-const success = await store.revert(someHash);
+Make changes to the state, then use `undo()` to go back and `redo()` to jump forward:
+
+```typescript
+const store = new Shoy({ count: 0 }, { maxHistory: 20 });
+
+store.apply({ count: 1 });
+store.apply({ count: 2 });
+store.apply({ count: 3 });
+console.log(store.current);
+
+store.undo();
+console.log(store.current);
+
+store.undo();
+console.log(store.current);
+
+store.redo();
+console.log(store.current);
+
+console.log(store.history);
 ```
 
-**Full example with React:**
+**Full React Component with Undo/Redo Buttons:**
+
+A complete component with undo/redo functionality. Users can click any hash button to jump directly to that state:
+
 ```tsx
-function HistoryControls() {
-  const history = useGet(store, () => store.history);
+import { useMemo } from 'react';
+import { Shoy, useGet, useApply } from 'shoy';
+
+function CounterWithUndoRedo() {
+  const store = useMemo(() => new Shoy({ count: 0 }, { maxHistory: 10 }), []);
+  const count = useGet(store, (s) => s.count);
   const apply = useApply(store);
+  const history = useGet(store, () => store.history);
   
-  const revertToHash = async (hash: string) => {
-    const success = await store.revert(hash);
-    if (success) {
-      console.log('Reverted to', hash);
-    } else {
-      console.log('Could not revert');
-    }
-  };
+  const increment = () => apply({ count: count + 1 });
+  
+  const undo = () => store.undo();
+  const redo = () => store.redo();
+  
+  const canUndo = history.indexOf(store.rootHash) > 0;
+  const canRedo = history.indexOf(store.rootHash) < history.length - 1;
   
   return (
     <div>
-      {history.map(hash => (
-        <button key={hash} onClick={() => revertToHash(hash)}>
-          {hash}
-        </button>
-      ))}
+      <h2>Count: {count}</h2>
+      <p>Position: {history.indexOf(store.rootHash) + 1} of {history.length}</p>
+      
+      <button onClick={increment}>+</button>
+      <button onClick={undo} disabled={!canUndo}>Undo</button>
+      <button onClick={redo} disabled={!canRedo}>Redo</button>
+      
+      <div>
+        {history.map((hash) => (
+          <button
+            key={hash}
+            onClick={() => store.revert(hash)}
+            style={{ fontWeight: hash === store.rootHash ? 'bold' : 'normal' }}
+          >
+            {hash.slice(0, 8)}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -197,14 +233,14 @@ unsubscribe();
 Update state programmatically without React:
 
 ```typescript
-await store.apply({ count: 42 });
+store.apply({ count: 42 });
 
-await store.apply((prev) => ({
+store.apply((prev) => ({
   count: prev.count + 1,
   user: { ...prev.user, age: prev.user.age + 1 },
 }));
 
-const newHash = await store.apply({ count: 100 });
+const newHash = store.apply({ count: 100 });
 console.log('New state hash:', newHash);
 ```
 
@@ -244,19 +280,19 @@ React hook that returns a stable function to apply state patches.
 ```typescript
 function useApply<S>(
   store: Shoy<S>
-): (patch: Patch<S>) => Promise<Hash>
+): (patch: Patch<S>) => Hash
 ```
 
 **Parameters:**
 - `store` - The Shoy store instance
 
-**Returns:** A function that applies patches and returns a promise with the new hash
+**Returns:** A function that applies patches and returns the new hash
 
 **Example:**
 ```typescript
 const apply = useApply(store);
-await apply({ count: 10 });
-await apply((prev) => ({ count: prev.count + 1 }));
+apply({ count: 10 });
+apply((prev) => ({ count: prev.count + 1 }));
 ```
 
 ---
@@ -296,18 +332,18 @@ const store = new Shoy({ count: 0 }, { maxHistory: 50 });
 Applies a patch to the state and returns the new state hash.
 
 ```typescript
-apply(patch: Patch<S>): Promise<Hash>
+apply(patch: Patch<S>): Hash
 ```
 
 **Parameters:**
 - `patch` - Either a partial state object or a function `(prev: S) => Partial<S>`
 
-**Returns:** Promise that resolves to the new state hash
+**Returns:** The new state hash
 
 **Example:**
 ```typescript
-const hash = await store.apply({ count: 42 });
-await store.apply((prev) => ({ count: prev.count + 1 }));
+const hash = store.apply({ count: 42 });
+store.apply((prev) => ({ count: prev.count + 1 }));
 ```
 
 ---
@@ -372,33 +408,153 @@ const hashes = store.history; // ['hash1', 'hash2', ...]
 Reverts the state to a previous version by hash.
 
 ```typescript
-revert(hash: Hash): Promise<boolean>
+revert(hash: Hash): boolean
 ```
 
 **Parameters:**
 - `hash` - The hash of the state to revert to
 
-**Returns:** Promise that resolves to `true` if successful, `false` otherwise
+**Returns:** `true` if successful, `false` otherwise
 
 **Example:**
 ```typescript
-const success = await store.revert('abc123');
+const success = store.revert('abc123');
 if (success) {
   console.log('Reverted successfully');
 }
 ```
 
+---
+
+#### `store.undo()`
+
+Undoes the last state change (goes back to previous state in history).
+
+```typescript
+undo(): boolean
+```
+
+**Returns:** `true` if undo was successful, `false` if at beginning of history or history disabled
+
+**Example:**
+```typescript
+store.apply({ count: 1 });
+store.apply({ count: 2 });
+store.undo(); // count is now 1
+```
+
+---
+
+#### `store.redo()`
+
+Redoes a previously undone state change.
+
+```typescript
+redo(): boolean
+```
+
+**Returns:** `true` if redo was successful, `false` if at end of history or history forked
+
+**Example:**
+```typescript
+store.undo(); // go back
+store.redo(); // go forward again
+```
+
+**Note:** Redo only works if history hasn't been forked (no new changes after undo).
+
+---
+
 ## Performance
 
 Shoy store is optimized for performance:
 
-- **~0.3ms update speed**
+- **~0.001ms update speed** (synchronous hashing)
 - **Only 10 re-renders** (5 stores, 50 components)
-- **Low memory overhead** (hashes + merges)
+- **Low memory overhead** (fast hashes + deduplication)
 - **Best for versioned diffs** and primitives
 - **Scalable** and efficient
 
-Patches are shallow merges; selectors skip unchanged diffs, making it ideal for multi-store needs without the overhead of proxies, atoms, machines, or full-tree diffing.
+Patches support both replacement and deep merging; selectors skip unchanged diffs, making it ideal for multi-store needs without the overhead of proxies, atoms, machines, or full-tree diffing.
+
+### Advantages
+
+**Unique Features:**
+- **Content-addressed hashing** - Deterministic state IDs for deduplication
+- **Automatic deduplication** - Identical states share memory
+- **Built-in time-travel** - Replay, undo/redo, debugging
+- **Git-like versioning** - See full state history
+- **Zero-config setup** - Works out of the box
+- **Micro-bundle** - Smallest React state library
+
+**Best For:**
+- **Undo/redo functionality** - Built-in time-travel debugging
+- **State debugging** - Automatic version history
+- **Optimistic UI updates** - Hash-based deduplication
+- Collaborative editing / CRDTs - **Foundation provided** (you add transport layer)
+- State synchronization - **Foundation provided** (you add network layer)
+- Audit trails / compliance - **Foundation provided** (you add persistence)
+- Offline-first apps - **Foundation provided** (you add storage layer)
+
+## How It Works
+
+Shoy uses **content-addressed versioning** inspired by Git:
+
+- Every state change computes a **deterministic hash** of the entire state
+- Hashes serve as unique identifiers (like Git commits)
+- Identical states produce identical hashes (automatic deduplication)
+- Enables time-travel debugging when `maxHistory > 0`
+- Perfect for state synchronization between devices/apps
+
+The hash algorithm is fast (DJB2-based) and deterministic, making it perfect for deduplication, debugging, and sync scenarios without cryptographic security requirements.
+
+### What Shoy Provides vs What You Build
+
+**✅ Built-In (Out of the Box):**
+
+Undo/Redo, Deterministic Hashing, Auto Deduplication, and Version History:
+
+```typescript
+const store = new Shoy({ count: 0 }, { maxHistory: 10 });
+
+store.apply({ count: 1 });
+store.apply({ count: 2 });
+store.undo();
+
+const storeA = new Shoy({ a: 1, b: 2 });
+const storeB = new Shoy({ b: 2, a: 1 });
+console.log(storeA.rootHash === storeB.rootHash);
+
+const h1 = store.apply({ count: 100 });
+const h2 = store.apply({ count: 100 });
+console.log(h1 === h2);
+
+console.log(store.history);
+```
+
+**⚠️ Foundation Provided (You Add the Layer):**
+
+Not included: WebSocket/HTTP transport, conflict resolution, network retry logic, data persistence, and multi-device sync. Example of building sync on top of Shoy:
+
+```typescript
+function setupSync(store) {
+  const socket = new WebSocket('ws://sync-server');
+  
+  socket.onmessage = (event) => {
+    const { hash, state } = JSON.parse(event.data);
+    if (!store.versions.has(hash)) {
+      store.versions.set(hash, state);
+    }
+  };
+  
+  store.subscribe((hash) => {
+    const state = store.current;
+    socket.send(JSON.stringify({ hash, state }));
+  });
+}
+```
+
+**Key Point:** Shoy gives you Git-like content-addressed storage. You build the transport layer.
 
 ## TypeScript Support
 
