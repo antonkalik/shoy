@@ -9,9 +9,14 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -105,7 +110,5 @@ jobs:
           git config --local user.name "GitHub Action"
           git add README.md
           git diff --staged --quiet || git commit -m "chore: update coverage badge [skip ci]"
-          git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          git push origin HEAD:main
 
